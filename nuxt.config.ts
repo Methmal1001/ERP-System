@@ -3,4 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
   devtools: { enabled: true },
+  pinia: {
+    storesDirs: ['./stores/**'],
+  },
 })
