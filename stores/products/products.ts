@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
 
-const API_BASE = '/api/inventory'
-
 export const useProductsStore = defineStore('products', {
   state: () => ({
     products: [],
@@ -11,6 +9,8 @@ export const useProductsStore = defineStore('products', {
     totalPages: 0,
     loading: false,
     error: null,
+    auditLogs: [],
+    auditLoading: false,
   }),
 
   getters: {
@@ -22,8 +22,9 @@ export const useProductsStore = defineStore('products', {
     async fetchProducts(page = 1) {
       this.loading = true
       this.error = null
+      const { request } = useInventoryApi()
       try {
-        const res = await $fetch(`${API_BASE}/GetAllProducts`, {
+        const res = await request('/GetAllProducts', {
           params: { page, pageSize: this.pageSize },
         })
         if (res.isSuccess) {
@@ -32,49 +33,84 @@ export const useProductsStore = defineStore('products', {
           this.page = res.data.page
           this.totalPages = res.data.totalPages
         }
-      } catch {
-        this.error = 'Unable to connect to the server. Please check your connection.'
+      } catch (e: any) {
+        this.error = getApiErrorMessage(e, 'Unable to connect to the server. Please check your connection.')
       } finally {
         this.loading = false
       }
     },
 
     async addProduct(data) {
+      const auth = useAuthStore()
+      const { request } = useInventoryApi()
       try {
-        await $fetch(`${API_BASE}/AddProducts`, {
+        await request('/AddProducts', {
           method: 'POST',
-          body: data,
+          body: {
+            ...data,
+            createdByUserId: auth.user?.id,
+            createdByUserName: auth.user?.name,
+          },
         })
         await this.fetchProducts(this.page)
         return { success: true }
-      } catch (e) {
-        return { success: false, error: e?.data?.message || 'Failed to add product' }
+      } catch (e: any) {
+        return { success: false, error: getApiErrorMessage(e, 'Failed to add product') }
       }
     },
 
     async updateProduct(data) {
+      const auth = useAuthStore()
+      const { request } = useInventoryApi()
       try {
-        await $fetch(`${API_BASE}/UpdateProducts`, {
+        await request('/UpdateProducts', {
           method: 'PUT',
-          body: data,
+          body: {
+            ...data,
+            updatedByUserId: auth.user?.id,
+            updatedByUserName: auth.user?.name,
+          },
         })
         await this.fetchProducts(this.page)
         return { success: true }
-      } catch (e) {
-        return { success: false, error: e?.data?.message || 'Failed to update product' }
+      } catch (e: any) {
+        return { success: false, error: getApiErrorMessage(e, 'Failed to update product') }
       }
     },
 
-    async deleteProduct(id, deletionReason, deletedByUserId = 'system', deletedByUserName = 'System') {
+    async fetchAuditLogs(productId) {
+      this.auditLoading = true
+      this.auditLogs = []
+      const { request } = useInventoryApi()
       try {
-        await $fetch(`${API_BASE}/DeleteProductsByID`, {
+        const res = await request('/GetProductAuditLogs', {
+          params: { productId },
+        })
+        if (res.isSuccess) this.auditLogs = res.data
+      } catch {
+        this.auditLogs = []
+      } finally {
+        this.auditLoading = false
+      }
+    },
+
+    async deleteProduct(id, deletionReason) {
+      const auth = useAuthStore()
+      const { request } = useInventoryApi()
+      try {
+        await request('/DeleteProductsByID', {
           method: 'DELETE',
-          body: { id, deletionReason, deletedByUserId, deletedByUserName },
+          body: {
+            id,
+            deletionReason,
+            deletedByUserId: auth.user?.id,
+            deletedByUserName: auth.user?.name,
+          },
         })
         await this.fetchProducts(this.page)
         return { success: true }
-      } catch (e) {
-        return { success: false, error: e?.data?.message || 'Failed to delete product' }
+      } catch (e: any) {
+        return { success: false, error: getApiErrorMessage(e, 'Failed to delete product') }
       }
     },
   },

@@ -1,9 +1,9 @@
 <template>
-  <RegisterForm />
+  <AccountAccessInfo />
 </template>
 
 <script setup>
-import RegisterForm from '~/components/auth/RegisterForm.vue'
+import AccountAccessInfo from '~/components/auth/AccountAccessInfo.vue'
 
 definePageMeta({
   layout: 'auth',

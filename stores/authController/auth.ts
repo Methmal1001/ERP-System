@@ -90,18 +90,19 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async register(payload: { name: string; email: string; password: string; roleId: string }) {
+    async changePassword(currentPassword: string, newPassword: string) {
       this.loading = true
       try {
-        const res: any = await $fetch(`${API_BASE}/Register`, {
+        const { request } = useHrApi()
+        await request('/auth/ChangePassword', {
           method: 'POST',
-          body: payload,
+          body: { currentPassword, newPassword },
         })
-        return { success: true, data: res.data }
+        return { success: true }
       } catch (e: any) {
         return {
           success: false,
-          error: e?.data?.message || 'Registration failed. Please try again.',
+          error: e?.data?.message || 'Failed to change password. Please check your current password and try again.',
         }
       } finally {
         this.loading = false

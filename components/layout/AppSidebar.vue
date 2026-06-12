@@ -71,6 +71,25 @@
         {{ item.label }}
       </NuxtLink>
 
+      <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 mt-5">Inventory</p>
+      <NuxtLink
+        v-for="item in inventoryItems"
+        :key="item.to"
+        :to="item.to"
+        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group"
+        :class="isActive(item.to)
+          ? 'bg-blue-50 text-blue-700'
+          : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'"
+        @click="sidebarOpen = false"
+      >
+        <span
+          class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+          :class="isActive(item.to) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400 group-hover:text-gray-600'"
+          v-html="item.icon"
+        ></span>
+        {{ item.label }}
+      </NuxtLink>
+
       <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 mt-5">Administration</p>
       <NuxtLink
         v-for="item in adminItems"
@@ -133,6 +152,10 @@ const workforceItems = [
   { to: '/leave', label: 'Leave', icon: icon('M8 7V3m8 4V3M5 11h14M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zM9 16h.01M12 16h.01M15 16h.01') },
   { to: '/payroll', label: 'Payroll', icon: icon('M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 2v8m0 0v2m0-2c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z') },
   { to: '/performance', label: 'Performance', icon: icon('M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm6 0V9a2 2 0 00-2-2h-2a2 2 0 00-2 2v10m6 0V5a2 2 0 00-2-2h-2a2 2 0 00-2 2v14') },
+]
+
+const inventoryItems = [
+  { to: '/products', label: 'Products', icon: icon('M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4') },
 ]
 
 const adminItems = [

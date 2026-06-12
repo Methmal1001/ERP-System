@@ -76,8 +76,8 @@
     </form>
 
     <p class="text-center text-sm text-gray-400 mt-6">
-      Don't have an account?
-      <NuxtLink to="/auth/Register" class="text-blue-600 font-semibold hover:text-blue-700">Create one</NuxtLink>
+      Need an account?
+      <NuxtLink to="/auth/Register" class="text-blue-600 font-semibold hover:text-blue-700">Contact your administrator</NuxtLink>
     </p>
   </div>
 </template>

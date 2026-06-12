@@ -44,6 +44,16 @@
                 <p class="text-xs text-gray-400 mb-1">Permissions</p>
                 <p class="text-xs font-medium text-gray-600">{{ auth.permissions.length }} granted</p>
               </div>
+              <NuxtLink
+                to="/account/change-password"
+                @click="menuOpen = false"
+                class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
+                </svg>
+                Change Password
+              </NuxtLink>
               <button
                 @click="handleLogout"
                 class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors"

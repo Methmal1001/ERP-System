@@ -73,6 +73,28 @@ export const usePermissionsStore = defineStore('hrPermissions', {
       }
     },
 
+    async updateRole(id: string, payload: { name: string; description?: string }) {
+      const { request } = useHrApi()
+      try {
+        await request(`/roles/UpdateRole?id=${id}`, { method: 'PUT', body: payload })
+        await this.fetchRoles()
+        return { success: true }
+      } catch (e: any) {
+        return { success: false, error: e?.data?.message || 'Failed to update role.' }
+      }
+    },
+
+    async deleteRole(id: string) {
+      const { request } = useHrApi()
+      try {
+        await request(`/roles/DeleteRole?id=${id}`, { method: 'DELETE' })
+        await this.fetchRoles()
+        return { success: true }
+      } catch (e: any) {
+        return { success: false, error: e?.data?.message || 'Failed to delete role.' }
+      }
+    },
+
     async assignPermissions(roleId: string, permissionIds: string[]) {
       const { request } = useHrApi()
       try {

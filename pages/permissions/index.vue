@@ -17,7 +17,7 @@
     <div v-if="activeTab === 'roles'" class="space-y-5">
       <div class="flex justify-end">
         <button
-          @click="showRoleModal = true"
+          @click="openAddRoleModal"
           class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95"
         >
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -56,7 +56,29 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 10-8 0v4h8z" />
             </svg>
           </div>
-          <p class="text-sm font-semibold text-gray-800">{{ role.name }}</p>
+          <div class="flex items-start justify-between gap-2">
+            <p class="text-sm font-semibold text-gray-800">{{ role.name }}</p>
+            <div v-if="canManageRoles" class="flex items-center gap-1 flex-shrink-0">
+              <button
+                @click="openEditRoleModal(role)"
+                class="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                title="Edit role"
+              >
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </button>
+              <button
+                @click="openDeleteRoleModal(role)"
+                class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="Delete role"
+              >
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+              </button>
+            </div>
+          </div>
           <p class="text-sm text-gray-500 line-clamp-2 mt-1 mb-4 flex-1">{{ role.description || 'No description provided.' }}</p>
           <div class="flex items-center justify-between">
             <span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-md text-xs font-semibold">
@@ -152,7 +174,7 @@
         </StatCard>
       </div>
 
-      <div class="flex justify-end">
+      <div v-if="canManageUsers" class="flex justify-end">
         <button
           @click="openAddUserModal"
           class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95"
@@ -162,6 +184,12 @@
           </svg>
           Add User
         </button>
+      </div>
+      <div v-else class="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 flex items-start gap-2.5">
+        <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+        </svg>
+        <p class="text-xs text-amber-700">Only HR Admins can create or manage user accounts.</p>
       </div>
 
       <!-- Error State -->
@@ -218,7 +246,7 @@
                     <StatusBadge :status="u.isActive ? 'active' : 'inactive'" :label="u.isActive ? 'Active' : 'Inactive'" />
                   </td>
                   <td class="px-5 py-3.5">
-                    <div class="flex items-center justify-end gap-1">
+                    <div v-if="canManageUsers" class="flex items-center justify-end gap-1">
                       <button
                         @click="openEditUserModal(u)"
                         class="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
@@ -239,6 +267,7 @@
                         </svg>
                       </button>
                     </div>
+                    <span v-else class="text-xs text-gray-300">—</span>
                   </td>
                 </tr>
               </tbody>
@@ -249,7 +278,12 @@
     </div>
 
     <!-- Modals -->
-    <RoleFormModal v-if="showRoleModal" @close="showRoleModal = false" @success="handleRoleSuccess" />
+    <RoleFormModal
+      v-if="showRoleModal"
+      :role="editingRole"
+      @close="showRoleModal = false"
+      @success="handleRoleSuccess"
+    />
     <PermissionFormModal v-if="showPermissionModal" @close="showPermissionModal = false" @success="handlePermissionSuccess" />
     <AssignPermissionsModal
       v-if="showAssignModal && assigningRole"
@@ -277,6 +311,20 @@
     >
       Are you sure you want to deactivate <strong>{{ deactivatingUser.name }}</strong>? They will no longer be able to sign in.
     </ConfirmModal>
+    <ConfirmModal
+      v-if="showDeleteRoleModal && deletingRole"
+      title="Delete Role"
+      subtitle="This cannot be undone"
+      tone="danger"
+      confirm-text="Delete"
+      loading-text="Deleting..."
+      :loading="deleteRoleLoading"
+      :error="deleteRoleError"
+      @close="showDeleteRoleModal = false"
+      @confirm="confirmDeleteRole"
+    >
+      Are you sure you want to delete <strong>{{ deletingRole.name }}</strong>? Users assigned to this role will lose its permissions.
+    </ConfirmModal>
   </div>
 </template>
 
@@ -297,8 +345,13 @@ definePageMeta({
 })
 
 const permissionsStore = usePermissionsStore()
+const auth = useAuthStore()
 const toast = useToast()
 const format = useFormat()
+
+const isHrAdmin = computed(() => auth.user?.role === 'HR Admin')
+const canManageUsers = computed(() => isHrAdmin.value || auth.can('Users', 'Create'))
+const canManageRoles = computed(() => isHrAdmin.value || auth.can('Roles', 'Update'))
 
 const tabs = [
   { key: 'roles', label: 'Roles' },
@@ -308,6 +361,7 @@ const tabs = [
 const activeTab = ref('roles')
 
 const showRoleModal = ref(false)
+const editingRole = ref(null)
 const showPermissionModal = ref(false)
 const showAssignModal = ref(false)
 const assigningRole = ref(null)
@@ -317,6 +371,10 @@ const showDeactivateModal = ref(false)
 const deactivatingUser = ref(null)
 const deactivateLoading = ref(false)
 const deactivateError = ref('')
+const showDeleteRoleModal = ref(false)
+const deletingRole = ref(null)
+const deleteRoleLoading = ref(false)
+const deleteRoleError = ref('')
 
 const inactiveUserCount = computed(() => permissionsStore.users.filter((u) => !u.isActive).length)
 
@@ -328,6 +386,36 @@ const groupedPermissions = computed(() => {
   }
   return groups
 })
+
+const openAddRoleModal = () => {
+  editingRole.value = null
+  showRoleModal.value = true
+}
+
+const openEditRoleModal = (role) => {
+  editingRole.value = role
+  showRoleModal.value = true
+}
+
+const openDeleteRoleModal = (role) => {
+  deletingRole.value = role
+  deleteRoleError.value = ''
+  showDeleteRoleModal.value = true
+}
+
+const confirmDeleteRole = async () => {
+  if (!deletingRole.value) return
+  deleteRoleLoading.value = true
+  deleteRoleError.value = ''
+  const result = await permissionsStore.deleteRole(deletingRole.value.id)
+  deleteRoleLoading.value = false
+  if (result.success) {
+    showDeleteRoleModal.value = false
+    toast.success('Role deleted successfully.')
+  } else {
+    deleteRoleError.value = result.error
+  }
+}
 
 const openAssignModal = (role) => {
   assigningRole.value = role
@@ -365,7 +453,7 @@ const confirmDeactivate = async () => {
 }
 
 const handleRoleSuccess = () => {
-  toast.success('Role created successfully.')
+  toast.success(editingRole.value ? 'Role updated successfully.' : 'Role created successfully.')
 }
 
 const handlePermissionSuccess = () => {

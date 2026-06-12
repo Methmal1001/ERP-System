@@ -8,8 +8,8 @@
           <form @submit.prevent="handleSubmit">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div>
-                <h2 class="text-lg font-bold text-gray-900">New Role</h2>
-                <p class="text-sm text-gray-400 mt-0.5">Create a new user role</p>
+                <h2 class="text-lg font-bold text-gray-900">{{ isEdit ? 'Edit Role' : 'New Role' }}</h2>
+                <p class="text-sm text-gray-400 mt-0.5">{{ isEdit ? 'Update role details' : 'Create a new user role' }}</p>
               </div>
               <button type="button" @click="$emit('close')" class="text-gray-400 hover:text-gray-600 p-1">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -60,7 +60,7 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                 </svg>
-                {{ loading ? 'Saving...' : 'Create Role' }}
+                {{ loading ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Role' }}
               </button>
             </div>
           </form>
@@ -71,28 +71,37 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
+
+const props = defineProps({
+  role: { type: Object, default: null },
+})
 
 const emit = defineEmits(['close', 'success'])
 
 const permissionsStore = usePermissionsStore()
 
+const isEdit = computed(() => !!props.role)
 const loading = ref(false)
 const error = ref('')
 
 const form = reactive({
-  name: '',
-  description: '',
+  name: props.role?.name ?? '',
+  description: props.role?.description ?? '',
 })
 
 const handleSubmit = async () => {
   error.value = ''
   loading.value = true
 
-  const result = await permissionsStore.createRole({
+  const payload = {
     name: form.name.trim(),
     description: form.description.trim() || undefined,
-  })
+  }
+
+  const result = isEdit.value
+    ? await permissionsStore.updateRole(props.role.id, payload)
+    : await permissionsStore.createRole(payload)
 
   loading.value = false
 
