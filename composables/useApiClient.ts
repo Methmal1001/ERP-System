@@ -20,9 +20,21 @@ export const useApiClient = (basePath: string) => {
       headers.Authorization = `Bearer ${auth.accessToken}`
     }
 
+    const method = (opts.method || 'GET').toUpperCase()
+    const fullUrl = `${basePath}${url}`
+
+    console.groupCollapsed(`%c[API] ${method} ${fullUrl}`, 'color:#2563eb;font-weight:bold')
+    if (opts.params) console.log('Params:', opts.params)
+    if (opts.body !== undefined) console.log('Request Body:', opts.body)
+
     try {
-      return await $fetch<T>(`${basePath}${url}`, { ...opts, headers })
+      const res = await $fetch<T>(fullUrl, { ...opts, headers })
+      console.log('%cResponse:', 'color:#16a34a;font-weight:bold', res)
+      console.groupEnd()
+      return res
     } catch (err: any) {
+      console.log('%cError Response:', 'color:#dc2626;font-weight:bold', err?.data ?? err)
+      console.groupEnd()
       if (err?.response?.status === 401) {
         await auth.logout()
         if (import.meta.client) {

@@ -156,6 +156,7 @@ const workforceItems = [
 
 const inventoryItems = [
   { to: '/products', label: 'Products', icon: icon('M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4') },
+  { to: '/products/deleted', label: 'Deleted Products', icon: icon('M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16') },
 ]
 
 const adminItems = [

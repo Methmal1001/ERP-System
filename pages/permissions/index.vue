@@ -176,13 +176,13 @@
 
       <div v-if="canManageUsers" class="flex justify-end">
         <button
-          @click="openAddUserModal"
+          @click="showCreateUserModal = true"
           class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95"
         >
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
           </svg>
-          Add User
+          Create User
         </button>
       </div>
       <div v-else class="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 flex items-start gap-2.5">
@@ -237,6 +237,7 @@
                       <div class="min-w-0">
                         <p class="text-sm font-semibold text-gray-800 truncate">{{ u.name }}</p>
                         <p class="text-xs text-gray-400 truncate">{{ u.email }}</p>
+                        <p v-if="u.username" class="text-xs text-blue-500 font-mono truncate">@{{ u.username }}</p>
                       </div>
                     </div>
                   </td>
@@ -247,6 +248,16 @@
                   </td>
                   <td class="px-5 py-3.5">
                     <div v-if="canManageUsers" class="flex items-center justify-end gap-1">
+                      <NuxtLink
+                        v-if="u.employeeId"
+                        :to="`/employees/${u.employeeId}`"
+                        class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="View employee profile"
+                      >
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6v6M10 14L20 4" />
+                        </svg>
+                      </NuxtLink>
                       <button
                         @click="openEditUserModal(u)"
                         class="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
@@ -292,10 +303,15 @@
       @success="handleAssignSuccess"
     />
     <UserFormModal
-      v-if="showUserModal"
+      v-if="showUserModal && editingUser"
       :user="editingUser"
       @close="showUserModal = false"
       @success="handleUserSuccess"
+    />
+    <CreateUserModal
+      v-if="showCreateUserModal"
+      @close="showCreateUserModal = false"
+      @success="handleCreateUserSuccess"
     />
     <ConfirmModal
       v-if="showDeactivateModal && deactivatingUser"
@@ -337,6 +353,7 @@ import RoleFormModal from '~/components/permissions/RoleFormModal.vue'
 import PermissionFormModal from '~/components/permissions/PermissionFormModal.vue'
 import AssignPermissionsModal from '~/components/permissions/AssignPermissionsModal.vue'
 import UserFormModal from '~/components/permissions/UserFormModal.vue'
+import CreateUserModal from '~/components/permissions/CreateUserModal.vue'
 
 definePageMeta({
   middleware: 'auth',
@@ -367,6 +384,7 @@ const showAssignModal = ref(false)
 const assigningRole = ref(null)
 const showUserModal = ref(false)
 const editingUser = ref(null)
+const showCreateUserModal = ref(false)
 const showDeactivateModal = ref(false)
 const deactivatingUser = ref(null)
 const deactivateLoading = ref(false)
@@ -422,11 +440,6 @@ const openAssignModal = (role) => {
   showAssignModal.value = true
 }
 
-const openAddUserModal = () => {
-  editingUser.value = null
-  showUserModal.value = true
-}
-
 const openEditUserModal = (user) => {
   editingUser.value = user
   showUserModal.value = true
@@ -466,6 +479,10 @@ const handleAssignSuccess = () => {
 
 const handleUserSuccess = () => {
   toast.success(editingUser.value ? 'User updated successfully.' : 'User created successfully.')
+}
+
+const handleCreateUserSuccess = (payload) => {
+  toast.success(payload?.message || 'User created successfully.')
 }
 
 onMounted(() => {

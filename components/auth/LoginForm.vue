@@ -19,16 +19,17 @@
 
     <form @submit.prevent="handleSubmit" class="space-y-4">
       <div>
-        <label class="block text-xs font-medium text-gray-600 mb-1.5">Email Address</label>
+        <label class="block text-xs font-medium text-gray-600 mb-1.5">Username or Email</label>
         <div class="relative">
           <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
           <input
-            v-model="email"
-            type="email"
+            v-model="identifier"
+            type="text"
             required
-            placeholder="you@company.com"
+            autocomplete="username"
+            placeholder="Employee No or email"
             class="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-colors"
           />
         </div>
@@ -86,7 +87,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-const email = ref('')
+const identifier = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const loading = ref(false)
@@ -98,7 +99,7 @@ const router = useRouter()
 const handleSubmit = async () => {
   error.value = ''
   loading.value = true
-  const result = await auth.login(email.value.trim(), password.value)
+  const result = await auth.login(identifier.value.trim(), password.value)
   loading.value = false
   if (result.success) {
     router.push('/')
