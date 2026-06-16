@@ -453,7 +453,7 @@ const toast = useToast()
 const format = useFormat()
 
 const employee = computed(() => store.current)
-const isHrAdmin = computed(() => auth.user?.role === 'HR Admin')
+const isHrAdmin = computed(() => auth.user?.role === 'HR Admin' || auth.user?.role === 'Admin')
 
 const activeTab = ref('overview')
 const loadedTabs = new Set(['overview'])
