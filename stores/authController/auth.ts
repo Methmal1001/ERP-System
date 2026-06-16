@@ -6,6 +6,8 @@ export interface HrUserProfile {
   id: string
   name: string
   email: string
+  username?: string | null
+  employeeId?: string | null
   role: string
   permissions: string[]
 }
@@ -65,13 +67,18 @@ export const useAuthStore = defineStore('auth', {
       this.persist()
     },
 
-    async login(email: string, password: string) {
+    async login(usernameOrEmail: string, password: string) {
       this.loading = true
+      const url = `${API_BASE}/Login`
+      console.groupCollapsed(`%c[API] POST ${url}`, 'color:#2563eb;font-weight:bold')
+      console.log('Request Body:', { usernameOrEmail, password: '••••••••' })
       try {
-        const res: any = await $fetch(`${API_BASE}/Login`, {
+        const res: any = await $fetch(url, {
           method: 'POST',
-          body: { email, password },
+          body: { usernameOrEmail, password },
         })
+        console.log('%cResponse:', 'color:#16a34a;font-weight:bold', res)
+        console.groupEnd()
         if (res.isSuccess) {
           this.accessToken = res.data.accessToken
           this.refreshToken = res.data.refreshToken
@@ -81,9 +88,11 @@ export const useAuthStore = defineStore('auth', {
         }
         return { success: false, error: res.message || 'Login failed.' }
       } catch (e: any) {
+        console.log('%cError Response:', 'color:#dc2626;font-weight:bold', e?.data ?? e)
+        console.groupEnd()
         return {
           success: false,
-          error: e?.data?.message || 'Invalid email or password.',
+          error: e?.data?.message || 'Invalid username/email or password.',
         }
       } finally {
         this.loading = false
@@ -112,11 +121,19 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       try {
         if (this.accessToken && this.refreshToken) {
-          await $fetch(`${API_BASE}/Logout`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${this.accessToken}` },
-            body: { refreshToken: this.refreshToken },
-          })
+          const url = `${API_BASE}/Logout`
+          console.groupCollapsed(`%c[API] POST ${url}`, 'color:#2563eb;font-weight:bold')
+          console.log('Request Body:', { refreshToken: this.refreshToken })
+          try {
+            const res = await $fetch(url, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${this.accessToken}` },
+              body: { refreshToken: this.refreshToken },
+            })
+            console.log('%cResponse:', 'color:#16a34a;font-weight:bold', res)
+          } finally {
+            console.groupEnd()
+          }
         }
       } catch {
         // ignore network/auth errors on logout

@@ -9,8 +9,9 @@ export const useProductsStore = defineStore('products', {
     totalPages: 0,
     loading: false,
     error: null,
-    auditLogs: [],
-    auditLoading: false,
+    deletedProducts: [],
+    deletedLoading: false,
+    deletedError: null,
   }),
 
   getters: {
@@ -78,19 +79,18 @@ export const useProductsStore = defineStore('products', {
       }
     },
 
-    async fetchAuditLogs(productId) {
-      this.auditLoading = true
-      this.auditLogs = []
+    async fetchDeletedProducts(filters = {}) {
+      this.deletedLoading = true
+      this.deletedError = null
       const { request } = useInventoryApi()
       try {
-        const res = await request('/GetProductAuditLogs', {
-          params: { productId },
-        })
-        if (res.isSuccess) this.auditLogs = res.data
-      } catch {
-        this.auditLogs = []
+        const res = await request('/GetDeletedProducts', { params: filters })
+        if (res.isSuccess) this.deletedProducts = res.data
+      } catch (e: any) {
+        this.deletedError = getApiErrorMessage(e, 'Unable to load deleted products.')
+        this.deletedProducts = []
       } finally {
-        this.auditLoading = false
+        this.deletedLoading = false
       }
     },
 

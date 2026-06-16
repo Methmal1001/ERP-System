@@ -146,5 +146,16 @@ export const useLeaveStore = defineStore('hrLeave', {
         this.loading = false
       }
     },
+
+    async setLeaveBalance(payload: { employeeId: string; leaveTypeId: string; year: number; totalDays: number }) {
+      const { request } = useHrApi()
+      try {
+        await request('/leave/SetLeaveBalance', { method: 'POST', body: payload })
+        await this.fetchLeaveBalances(payload.employeeId, payload.year)
+        return { success: true }
+      } catch (e: any) {
+        return { success: false, error: getApiErrorMessage(e, 'Failed to update leave balance.') }
+      }
+    },
   },
 })

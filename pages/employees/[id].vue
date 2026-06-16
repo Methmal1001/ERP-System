@@ -234,6 +234,18 @@
 
       <!-- Leave -->
       <div v-else-if="activeTab === 'leave'" class="space-y-5">
+        <div v-if="isHrAdmin" class="flex justify-end">
+          <button
+            @click="showLeaveBalanceModal = true"
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Set Leave Balance
+          </button>
+        </div>
+
         <div v-if="leaveStore.leaveBalances.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div v-for="bal in leaveStore.leaveBalances" :key="bal.leaveTypeName" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
             <p class="text-sm font-semibold text-gray-800">{{ bal.leaveTypeName }}</p>
@@ -389,6 +401,13 @@
       @success="toast.success('Document uploaded successfully.')"
     />
 
+    <LeaveBalanceFormModal
+      v-if="showLeaveBalanceModal && employee"
+      :employee-id="employee.id"
+      @close="showLeaveBalanceModal = false"
+      @success="toast.success('Leave balance updated successfully.')"
+    />
+
     <ConfirmModal
       v-if="showDeleteDocModal && deletingDoc"
       title="Delete Document"
@@ -413,6 +432,7 @@ import StatusBadge from '~/components/ui/StatusBadge.vue'
 import ConfirmModal from '~/components/ui/ConfirmModal.vue'
 import EmployeeFormModal from '~/components/employees/EmployeeFormModal.vue'
 import DocumentUploadModal from '~/components/employees/DocumentUploadModal.vue'
+import LeaveBalanceFormModal from '~/components/employees/LeaveBalanceFormModal.vue'
 
 definePageMeta({
   middleware: 'auth',
@@ -428,10 +448,12 @@ const leaveStore = useLeaveStore()
 const attendanceStore = useAttendanceStore()
 const payrollStore = usePayrollStore()
 const performanceStore = usePerformanceStore()
+const auth = useAuthStore()
 const toast = useToast()
 const format = useFormat()
 
 const employee = computed(() => store.current)
+const isHrAdmin = computed(() => auth.user?.role === 'HR Admin')
 
 const activeTab = ref('overview')
 const loadedTabs = new Set(['overview'])
@@ -464,6 +486,7 @@ const monthName = (m) =>
 
 const showEditModal = ref(false)
 const showUploadModal = ref(false)
+const showLeaveBalanceModal = ref(false)
 const showDeleteDocModal = ref(false)
 const deletingDoc = ref(null)
 const deletingDocLoading = ref(false)

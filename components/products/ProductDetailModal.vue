@@ -151,49 +151,6 @@
               </div>
             </div>
 
-            <!-- Activity Log -->
-            <div>
-              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                Activity Log
-              </p>
-              <div v-if="store.auditLoading" class="space-y-2">
-                <div v-for="i in 3" :key="i" class="h-12 bg-gray-100 rounded-xl animate-pulse"></div>
-              </div>
-              <div
-                v-else-if="!store.auditLogs.length"
-                class="text-sm text-gray-400 text-center py-6 bg-gray-50 rounded-xl border border-gray-100"
-              >
-                No activity recorded yet.
-              </div>
-              <div v-else class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                <div
-                  v-for="log in store.auditLogs"
-                  :key="log.id"
-                  class="flex items-start gap-3 bg-gray-50 rounded-xl p-3"
-                >
-                  <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" :class="actionIconBg(log.action)">
-                    <svg v-if="actionKey(log.action) === 'create'" class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    <svg v-else-if="actionKey(log.action) === 'delete'" class="w-4 h-4 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
-                    </svg>
-                    <svg v-else class="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm text-gray-700">
-                      <span class="font-semibold">{{ log.userName || log.userId || 'Unknown user' }}</span>
-                      {{ actionLabel(log.action) }}
-                    </p>
-                    <p class="text-xs text-gray-400 mt-0.5">{{ formatDateTime(log.timestamp) }}</p>
-                    <p v-if="log.details" class="text-xs text-gray-500 mt-1 break-words">{{ log.details }}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <!-- Footer metadata -->
             <div
               class="flex items-center justify-between text-xs text-gray-400 pt-2 border-t border-gray-100"
@@ -227,16 +184,13 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
-import { useProductsStore } from '~/stores/products/products'
+import { computed } from 'vue'
 
 const props = defineProps({
   product: { type: Object, required: true }
 })
 
 defineEmits(['close', 'edit'])
-
-const store = useProductsStore()
 
 const margin = computed(() => {
   if (props.product.unitCost === 0) return '0.0'
@@ -264,36 +218,4 @@ const formatDate = (dateStr) =>
     day: 'numeric',
   })
 
-const formatDateTime = (dateStr) =>
-  new Date(dateStr).toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  })
-
-const actionKey = (action) => (action || '').toString().toLowerCase()
-
-const actionLabel = (action) => {
-  const map = {
-    create: 'created this product',
-    update: 'updated this product',
-    delete: 'deleted this product',
-  }
-  return map[actionKey(action)] || `performed "${action}" on this product`
-}
-
-const actionIconBg = (action) => {
-  const map = {
-    create: 'bg-emerald-100',
-    update: 'bg-blue-100',
-    delete: 'bg-red-100',
-  }
-  return map[actionKey(action)] || 'bg-blue-100'
-}
-
-onMounted(() => {
-  store.fetchAuditLogs(props.product.id)
-})
 </script>

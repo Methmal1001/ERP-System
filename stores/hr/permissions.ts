@@ -18,6 +18,9 @@ export interface AppUserAccount {
   id: string
   name: string
   email: string
+  username?: string | null
+  employeeId?: string | null
+  employeeNo?: string | null
   roleId: string
   roleName: string
   isActive: boolean
@@ -151,11 +154,11 @@ export const usePermissionsStore = defineStore('hrPermissions', {
     async createUser(payload: { name: string; email: string; password: string; roleId: string }) {
       const { request } = useHrApi()
       try {
-        await request('/users/CreateUser', { method: 'POST', body: payload })
+        const res: any = await request('/users/CreateUser', { method: 'POST', body: payload })
         await this.fetchUsers()
-        return { success: true }
+        return { success: true, data: res.data as AppUserAccount }
       } catch (e: any) {
-        return { success: false, error: e?.data?.message || 'Failed to create user.' }
+        return { success: false, error: getApiErrorMessage(e, 'Failed to create user.') }
       }
     },
 
