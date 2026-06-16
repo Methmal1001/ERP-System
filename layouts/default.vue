@@ -8,6 +8,7 @@
       </main>
     </div>
     <ToastContainer />
+    <ChatWidget />
   </div>
 </template>
 
@@ -15,4 +16,5 @@
 import AppSidebar from '~/components/layout/AppSidebar.vue'
 import AppHeader from '~/components/layout/AppHeader.vue'
 import ToastContainer from '~/components/ui/ToastContainer.vue'
+import ChatWidget from '~/components/chatbot/ChatWidget.vue'
 </script>
