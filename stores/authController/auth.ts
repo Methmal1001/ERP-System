@@ -99,6 +99,26 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    async updateProfile(payload: { name: string; email: string }) {
+      this.loading = true
+      try {
+        const { request } = useHrApi()
+        const res: any = await request('/auth/UpdateProfile', {
+          method: 'PUT',
+          body: payload,
+        })
+        if (this.user) {
+          this.user = { ...this.user, ...res.data }
+          this.persist()
+        }
+        return { success: true }
+      } catch (e: any) {
+        return { success: false, error: getApiErrorMessage(e, 'Failed to update profile.') }
+      } finally {
+        this.loading = false
+      }
+    },
+
     async changePassword(currentPassword: string, newPassword: string) {
       this.loading = true
       try {
