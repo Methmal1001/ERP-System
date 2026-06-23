@@ -185,15 +185,20 @@
           Create User
         </button>
       </div>
-      <div v-else class="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 flex items-start gap-2.5">
-        <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-        </svg>
-        <p class="text-xs text-amber-700">Only HR Admins can create or manage user accounts.</p>
+
+      <!-- No permission to view users -->
+      <div v-if="!canViewUsers" class="bg-amber-50 border border-amber-200 rounded-2xl p-8 text-center">
+        <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg class="w-7 h-7 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+        </div>
+        <p class="text-amber-800 font-semibold text-base mb-1">Users.View permission required</p>
+        <p class="text-amber-600 text-sm max-w-sm mx-auto">Your role does not have the <strong>Users.View</strong> permission. Go to the <button @click="activeTab = 'roles'" class="underline font-medium">Roles tab</button>, assign the permission to your role, then log out and back in.</p>
       </div>
 
       <!-- Error State -->
-      <div v-if="permissionsStore.error && !permissionsStore.loading" class="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+      <div v-else-if="permissionsStore.error && !permissionsStore.loading" class="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
         <p class="text-red-700 font-semibold mb-1">Failed to load users</p>
         <p class="text-red-500 text-sm mb-4">{{ permissionsStore.error }}</p>
         <button @click="permissionsStore.fetchUsers()" class="px-4 py-2 bg-red-600 text-white text-sm rounded-xl hover:bg-red-700 transition-colors">
@@ -201,20 +206,20 @@
         </button>
       </div>
 
-      <template v-else-if="permissionsStore.loading && !permissionsStore.users.length">
+      <template v-else-if="canViewUsers && permissionsStore.loading && !permissionsStore.users.length">
         <div class="space-y-3">
           <div v-for="i in 5" :key="i" class="h-16 bg-white rounded-2xl border border-gray-100 animate-pulse"></div>
         </div>
       </template>
 
-      <template v-else-if="permissionsStore.users.length === 0">
+      <template v-else-if="canViewUsers && permissionsStore.users.length === 0">
         <div class="text-center py-20">
           <p class="text-gray-700 font-semibold text-lg mb-1">No users found</p>
           <p class="text-gray-400 text-sm">Add a user account to get started.</p>
         </div>
       </template>
 
-      <template v-else>
+      <template v-else-if="canViewUsers">
         <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
           <div class="overflow-x-auto">
             <table class="w-full">
@@ -366,9 +371,11 @@ const auth = useAuthStore()
 const toast = useToast()
 const format = useFormat()
 
-const isHrAdmin = computed(() => auth.user?.role === 'HR Admin')
-const canManageUsers = computed(() => isHrAdmin.value || auth.can('Users', 'Create'))
-const canManageRoles = computed(() => isHrAdmin.value || auth.can('Roles', 'Update'))
+const isPrivileged = computed(() => auth.user?.role === 'HR Admin' || auth.user?.role === 'Admin')
+
+const canViewUsers = computed(() => isPrivileged.value || auth.can('Users', 'View'))
+const canManageUsers = computed(() => isPrivileged.value || auth.can('Users', 'Create'))
+const canManageRoles = computed(() => isPrivileged.value || auth.can('Roles', 'Update'))
 
 const tabs = [
   { key: 'roles', label: 'Roles' },
@@ -488,6 +495,6 @@ const handleCreateUserSuccess = (payload) => {
 onMounted(() => {
   permissionsStore.fetchRoles()
   permissionsStore.fetchPermissions()
-  permissionsStore.fetchUsers()
+  if (canViewUsers.value) permissionsStore.fetchUsers()
 })
 </script>

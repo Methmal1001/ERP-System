@@ -143,9 +143,11 @@ export const usePermissionsStore = defineStore('hrPermissions', {
       const { request } = useHrApi()
       try {
         const res: any = await request('/users/GetUsers')
+        console.log('Fetched users details:', res);
         if (res.isSuccess) this.users = res.data
       } catch (e: any) {
         this.error = e?.data?.message || 'Unable to load users.'
+        console.log('Error fetching users:', e);
       } finally {
         this.loading = false
       }
