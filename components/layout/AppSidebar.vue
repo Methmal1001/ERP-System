@@ -52,62 +52,68 @@
         {{ item.label }}
       </NuxtLink>
 
-      <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 mt-5">Workforce</p>
-      <NuxtLink
-        v-for="item in workforceItems"
-        :key="item.to"
-        :to="item.to"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group"
-        :class="isActive(item.to)
-          ? 'bg-blue-50 text-blue-700'
-          : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'"
-        @click="sidebarOpen = false"
-      >
-        <span
-          class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-          :class="isActive(item.to) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400 group-hover:text-gray-600'"
-          v-html="item.icon"
-        ></span>
-        {{ item.label }}
-      </NuxtLink>
+      <template v-if="visibleWorkforceItems.length">
+        <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 mt-5">Workforce</p>
+        <NuxtLink
+          v-for="item in visibleWorkforceItems"
+          :key="item.to"
+          :to="item.to"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group"
+          :class="isActive(item.to)
+            ? 'bg-blue-50 text-blue-700'
+            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'"
+          @click="sidebarOpen = false"
+        >
+          <span
+            class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+            :class="isActive(item.to) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400 group-hover:text-gray-600'"
+            v-html="item.icon"
+          ></span>
+          {{ item.label }}
+        </NuxtLink>
+      </template>
 
-      <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 mt-5">Inventory</p>
-      <NuxtLink
-        v-for="item in inventoryItems"
-        :key="item.to"
-        :to="item.to"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group"
-        :class="isActive(item.to)
-          ? 'bg-blue-50 text-blue-700'
-          : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'"
-        @click="sidebarOpen = false"
-      >
-        <span
-          class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-          :class="isActive(item.to) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400 group-hover:text-gray-600'"
-          v-html="item.icon"
-        ></span>
-        {{ item.label }}
-      </NuxtLink>
+      <template v-if="visibleInventoryItems.length">
+        <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 mt-5">Inventory</p>
+        <NuxtLink
+          v-for="item in visibleInventoryItems"
+          :key="item.to"
+          :to="item.to"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group"
+          :class="isActive(item.to)
+            ? 'bg-blue-50 text-blue-700'
+            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'"
+          @click="sidebarOpen = false"
+        >
+          <span
+            class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+            :class="isActive(item.to) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400 group-hover:text-gray-600'"
+            v-html="item.icon"
+          ></span>
+          {{ item.label }}
+        </NuxtLink>
+      </template>
 
-      <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 mt-5">Administration</p>
-      <NuxtLink
-        v-for="item in adminItems"
-        :key="item.to"
-        :to="item.to"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group"
-        :class="isActive(item.to)
-          ? 'bg-blue-50 text-blue-700'
-          : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'"
-        @click="sidebarOpen = false"
-      >
-        <span
-          class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-          :class="isActive(item.to) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400 group-hover:text-gray-600'"
-          v-html="item.icon"
-        ></span>
-        {{ item.label }}
-      </NuxtLink>
+      <template v-if="visibleAdminItems.length">
+        <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 mt-5">Administration</p>
+        <NuxtLink
+          v-for="item in visibleAdminItems"
+          :key="item.to"
+          :to="item.to"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group"
+          :class="isActive(item.to)
+            ? 'bg-blue-50 text-blue-700'
+            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'"
+          @click="sidebarOpen = false"
+        >
+          <span
+            class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+            :class="isActive(item.to) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400 group-hover:text-gray-600'"
+            v-html="item.icon"
+          ></span>
+          {{ item.label }}
+        </NuxtLink>
+      </template>
     </nav>
 
     <!-- User -->
@@ -131,6 +137,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
@@ -145,23 +152,32 @@ const mainItems = [
 ]
 
 const workforceItems = [
-  { to: '/employees', label: 'Employees', icon: icon('M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-2.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4') },
-  { to: '/departments', label: 'Departments', icon: icon('M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9v.01M9 12v.01M9 15v.01') },
-  { to: '/job-positions', label: 'Job Positions', icon: icon('M20 7h-3V5a2 2 0 00-2-2H9a2 2 0 00-2 2v2H4a1 1 0 00-1 1v10a2 2 0 002 2h14a2 2 0 002-2V8a1 1 0 00-1-1zM9 5h6v2H9V5z') },
-  { to: '/attendance', label: 'Attendance', icon: icon('M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zm6-7l2 2 4-4') },
-  { to: '/leave', label: 'Leave', icon: icon('M8 7V3m8 4V3M5 11h14M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zM9 16h.01M12 16h.01M15 16h.01') },
-  { to: '/payroll', label: 'Payroll', icon: icon('M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 2v8m0 0v2m0-2c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z') },
-  { to: '/performance', label: 'Performance', icon: icon('M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm6 0V9a2 2 0 00-2-2h-2a2 2 0 00-2 2v10m6 0V5a2 2 0 00-2-2h-2a2 2 0 00-2 2v14') },
+  { to: '/employees', label: 'Employees', icon: icon('M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-2.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4'), module: 'HR', action: 'ViewEmployee' },
+  { to: '/departments', label: 'Departments', icon: icon('M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9v.01M9 12v.01M9 15v.01'), module: 'HR', action: 'ViewDepartment' },
+  { to: '/job-positions', label: 'Job Positions', icon: icon('M20 7h-3V5a2 2 0 00-2-2H9a2 2 0 00-2 2v2H4a1 1 0 00-1 1v10a2 2 0 002 2h14a2 2 0 002-2V8a1 1 0 00-1-1zM9 5h6v2H9V5z'), module: 'HR', action: 'ViewJobPosition' },
+  { to: '/attendance', label: 'Attendance', icon: icon('M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zm6-7l2 2 4-4'), module: 'HR', action: 'ViewAttendance' },
+  { to: '/leave', label: 'Leave', icon: icon('M8 7V3m8 4V3M5 11h14M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zM9 16h.01M12 16h.01M15 16h.01'), module: 'HR', action: 'ViewLeave' },
+  { to: '/payroll', label: 'Payroll', icon: icon('M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 2v8m0 0v2m0-2c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'), module: 'HR', action: 'ViewPayroll' },
+  { to: '/performance', label: 'Performance', icon: icon('M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm6 0V9a2 2 0 00-2-2h-2a2 2 0 00-2 2v10m6 0V5a2 2 0 00-2-2h-2a2 2 0 00-2 2v14'), module: 'HR', action: 'ViewPerformance' },
 ]
 
 const inventoryItems = [
-  { to: '/products', label: 'Products', icon: icon('M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4') },
-  { to: '/products/deleted', label: 'Deleted Products', icon: icon('M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16') },
+  { to: '/products', label: 'Products', icon: icon('M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'), module: 'Products', action: 'View' },
+  { to: '/products/deleted', label: 'Deleted Products', icon: icon('M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16'), module: 'Products', action: 'View' },
 ]
 
 const adminItems = [
-  { to: '/permissions', label: 'Roles & Permissions', icon: icon('M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 10-8 0v2') },
+  {
+    to: '/permissions',
+    label: 'Roles & Permissions',
+    icon: icon('M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 10-8 0v2'),
+    permissions: [['Roles', 'View'], ['Permissions', 'View'], ['Users', 'View']],
+  },
 ]
+
+const visibleWorkforceItems = computed(() => workforceItems.filter((item) => auth.can(item.module, item.action)))
+const visibleInventoryItems = computed(() => inventoryItems.filter((item) => auth.can(item.module, item.action)))
+const visibleAdminItems = computed(() => adminItems.filter((item) => auth.canAny(item.permissions)))
 
 const isActive = (to) => {
   if (to === '/') return route.path === '/'

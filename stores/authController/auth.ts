@@ -30,6 +30,7 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: (state) => !!state.accessToken,
     permissions: (state) => state.user?.permissions ?? [],
+    isPrivileged: (state) => state.user?.role === 'HR Admin' || state.user?.role === 'Admin',
     initials: (state) => {
       if (!state.user?.name) return '?'
       return state.user.name
@@ -43,7 +44,13 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     can(module: string, action: string) {
+      if (this.isPrivileged) return true
       return this.permissions.includes(`${module}.${action}`)
+    },
+
+    canAny(pairs: Array<[string, string]>) {
+      if (this.isPrivileged) return true
+      return pairs.some(([module, action]) => this.permissions.includes(`${module}.${action}`))
     },
 
     load() {
