@@ -10,19 +10,27 @@ export interface AttendanceRecord {
   workedHours?: number | null
   status: string
   note?: string | null
+  approvalStatus: string
+  approvedByName?: string | null
+  approvedAt?: string | null
+  rejectionReason?: string | null
   createdAt: string
 }
 
 interface AttendanceState {
   records: AttendanceRecord[]
+  pendingApprovals: AttendanceRecord[]
   loading: boolean
+  approvalsLoading: boolean
   error: string | null
 }
 
 export const useAttendanceStore = defineStore('hrAttendance', {
   state: (): AttendanceState => ({
     records: [],
+    pendingApprovals: [],
     loading: false,
+    approvalsLoading: false,
     error: null,
   }),
 
@@ -70,6 +78,41 @@ export const useAttendanceStore = defineStore('hrAttendance', {
         return { success: true }
       } catch (e: any) {
         return { success: false, error: e?.data?.message || 'Failed to mark attendance.' }
+      }
+    },
+
+    async fetchPendingApprovals() {
+      this.approvalsLoading = true
+      const { request } = useHrApi()
+      try {
+        const res: any = await request('/attendance/GetPendingApprovals')
+        if (res.isSuccess) this.pendingApprovals = res.data
+      } catch (e: any) {
+        this.error = e?.data?.message || 'Unable to load pending approvals.'
+      } finally {
+        this.approvalsLoading = false
+      }
+    },
+
+    async approve(id: string) {
+      const { request } = useHrApi()
+      try {
+        await request(`/attendance/ApproveAttendance?id=${id}`, { method: 'PUT' })
+        await this.fetchPendingApprovals()
+        return { success: true }
+      } catch (e: any) {
+        return { success: false, error: getApiErrorMessage(e, 'Failed to approve attendance.') }
+      }
+    },
+
+    async reject(id: string, reason: string) {
+      const { request } = useHrApi()
+      try {
+        await request(`/attendance/RejectAttendance?id=${id}`, { method: 'PUT', body: { reason } })
+        await this.fetchPendingApprovals()
+        return { success: true }
+      } catch (e: any) {
+        return { success: false, error: getApiErrorMessage(e, 'Failed to reject attendance.') }
       }
     },
   },

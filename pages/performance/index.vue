@@ -180,7 +180,7 @@ import ReviewFormModal from '~/components/performance/ReviewFormModal.vue'
 import ReviewDetailModal from '~/components/performance/ReviewDetailModal.vue'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'hr-staff'],
   title: 'Performance',
   subtitle: 'Track employee performance reviews and ratings',
 })

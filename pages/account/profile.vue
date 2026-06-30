@@ -31,6 +31,11 @@
           </div>
 
           <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1.5">Username</label>
+            <input v-model="username" type="text" required placeholder="your.username" class="input" />
+          </div>
+
+          <div>
             <label class="block text-xs font-medium text-gray-600 mb-1.5">Email Address</label>
             <input v-model="email" type="email" required placeholder="you@company.com" class="input" />
           </div>
@@ -85,16 +90,21 @@ const auth = useAuthStore()
 const toast = useToast()
 
 const name = ref(auth.user?.name ?? '')
+const username = ref(auth.user?.username ?? '')
 const email = ref(auth.user?.email ?? '')
 const loading = ref(false)
 const error = ref('')
 
-const isDirty = computed(() => name.value !== (auth.user?.name ?? '') || email.value !== (auth.user?.email ?? ''))
+const isDirty = computed(() =>
+  name.value !== (auth.user?.name ?? '') ||
+  username.value !== (auth.user?.username ?? '') ||
+  email.value !== (auth.user?.email ?? '')
+)
 
 const handleSubmit = async () => {
   error.value = ''
   loading.value = true
-  const result = await auth.updateProfile({ name: name.value.trim(), email: email.value.trim() })
+  const result = await auth.updateProfile({ name: name.value.trim(), username: username.value.trim(), email: email.value.trim() })
   loading.value = false
 
   if (result.success) {

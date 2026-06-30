@@ -1,12 +1,12 @@
 <template>
-  <AccountAccessInfo />
+  <RegisterForm />
 </template>
 
 <script setup>
-import AccountAccessInfo from '~/components/auth/AccountAccessInfo.vue'
+import RegisterForm from '~/components/auth/RegisterForm.vue'
 
 definePageMeta({
   layout: 'auth',
-  middleware: 'guest',
+  middleware: 'register-access',
 })
 </script>

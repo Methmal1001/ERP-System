@@ -153,7 +153,7 @@ export const usePermissionsStore = defineStore('hrPermissions', {
       }
     },
 
-    async createUser(payload: { name: string; email: string; password: string; roleId: string }) {
+    async createUser(payload: { name: string; username: string; empNo: string; email: string; password: string; roleId: string }) {
       const { request } = useHrApi()
       try {
         const res: any = await request('/users/CreateUser', { method: 'POST', body: payload })
@@ -164,7 +164,7 @@ export const usePermissionsStore = defineStore('hrPermissions', {
       }
     },
 
-    async updateUser(id: string, payload: { name: string; email: string; roleId: string; isActive: boolean }) {
+    async updateUser(id: string, payload: { name: string; username: string; empNo: string; email: string; roleId: string; isActive: boolean }) {
       const { request } = useHrApi()
       try {
         await request(`/users/UpdateUser?id=${id}`, { method: 'PUT', body: payload })

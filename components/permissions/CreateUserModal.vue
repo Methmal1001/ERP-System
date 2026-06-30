@@ -56,6 +56,16 @@
               </div>
 
               <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1.5">Username *</label>
+                <input v-model="accountForm.username" type="text" required class="input" placeholder="jane.doe" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1.5">Employee No. *</label>
+                <input v-model="accountForm.empNo" type="text" required class="input" placeholder="EMP-0001" />
+              </div>
+
+              <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1.5">Email *</label>
                 <input v-model="accountForm.email" type="email" required class="input" placeholder="jane.doe@company.com" />
               </div>
@@ -69,7 +79,7 @@
                 <label class="block text-xs font-medium text-gray-600 mb-1.5">Role *</label>
                 <select v-model="accountForm.roleId" required class="input bg-white">
                   <option value="" disabled>Select role</option>
-                  <option v-for="role in permissionsStore.roles" :key="role.id" :value="role.id">{{ role.name }}</option>
+                  <option v-for="role in selectableRoles" :key="role.id" :value="role.id">{{ role.name }}</option>
                 </select>
               </div>
             </div>
@@ -180,12 +190,15 @@
                       <option v-for="pos in positionsForDepartment" :key="pos.id" :value="pos.id">{{ pos.title }}</option>
                     </select>
                   </div>
-                  <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Manager</label>
-                    <select v-model="employeeForm.managerId" class="input bg-white">
-                      <option value="">No manager</option>
-                      <option v-for="emp in employeesStore.employees" :key="emp.id" :value="emp.id">{{ emp.fullName }} — {{ emp.jobTitle }}</option>
+                  <div v-if="!isCreatingTopRole">
+                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Reporting Manager *</label>
+                    <select v-model="employeeForm.managerId" required class="input bg-white">
+                      <option value="" disabled>Select reporting manager</option>
+                      <option v-for="emp in managerCandidates" :key="emp.id" :value="emp.id">{{ emp.fullName }} — {{ emp.jobTitle }}</option>
                     </select>
+                    <p v-if="!managerCandidates.length" class="text-xs text-amber-600 mt-1.5">
+                      {{ isCreatingManager ? 'No CEO account exists yet — create one first, or pick a manager once available.' : 'No Manager is assigned to this department yet — assign one from Departments first.' }}
+                    </p>
                   </div>
                   <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1.5">Joining Date *</label>
@@ -256,14 +269,44 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 
 const emit = defineEmits(['close', 'success'])
 
+const auth = useAuthStore()
 const permissionsStore = usePermissionsStore()
 const departmentsStore = useDepartmentsStore()
 const jobPositionsStore = useJobPositionsStore()
 const employeesStore = useEmployeesStore()
+
+const RESTRICTED_ROLES = ['HR Admin', 'CEO']
+const selectableRoles = computed(() =>
+  auth.isAdmin ? permissionsStore.roles : permissionsStore.roles.filter((r) => !RESTRICTED_ROLES.includes(r.name))
+)
+
+const selectedRoleName = computed(() => permissionsStore.roles.find((r) => r.id === accountForm.roleId)?.name ?? '')
+const isCreatingManager = computed(() => selectedRoleName.value === 'Manager')
+const isCreatingTopRole = computed(() => selectedRoleName.value === 'CEO' || selectedRoleName.value === 'Admin')
+
+const employeeRoleMap = computed(() => {
+  const map = {}
+  for (const u of permissionsStore.users) {
+    if (u.employeeId) map[u.employeeId] = u.roleName
+  }
+  return map
+})
+
+const ceoEmployee = computed(() => employeesStore.employees.find((e) => employeeRoleMap.value[e.id] === 'CEO'))
+
+const managerCandidates = computed(() => {
+  if (isCreatingManager.value) {
+    const managers = employeesStore.employees.filter((e) => employeeRoleMap.value[e.id] === 'Manager')
+    return ceoEmployee.value ? [ceoEmployee.value, ...managers] : managers
+  }
+  return employeesStore.employees.filter(
+    (e) => employeeRoleMap.value[e.id] === 'Manager' && e.departmentId === employeeForm.departmentId
+  )
+})
 
 const step = ref(1)
 const loading = ref(false)
@@ -272,6 +315,8 @@ const createdUser = ref(null)
 
 const accountForm = reactive({
   fullName: '',
+  username: '',
+  empNo: '',
   email: '',
   nic: '',
   roleId: '',
@@ -302,12 +347,31 @@ const positionsForDepartment = computed(() => {
   return jobPositionsStore.positions.filter((p) => p.departmentId === employeeForm.departmentId)
 })
 
+watch(step, (value) => {
+  if (value !== 2) return
+  if (isCreatingTopRole.value) {
+    employeeForm.managerId = ''
+  } else if (isCreatingManager.value) {
+    employeeForm.managerId = ceoEmployee.value?.id ?? ''
+  }
+})
+
+watch(
+  () => employeeForm.departmentId,
+  (departmentId) => {
+    if (isCreatingTopRole.value || isCreatingManager.value || !departmentId) return
+    employeeForm.managerId = departmentsStore.byId(departmentId)?.managerId ?? ''
+  }
+)
+
 const handleCreateAccount = async () => {
   error.value = ''
   loading.value = true
 
   const result = await permissionsStore.createUser({
     name: accountForm.fullName.trim(),
+    username: accountForm.username.trim(),
+    empNo: accountForm.empNo.trim(),
     email: accountForm.email.trim(),
     password: accountForm.nic.trim(),
     roleId: accountForm.roleId,
@@ -374,6 +438,7 @@ const handleSkip = () => {
 
 onMounted(() => {
   if (!permissionsStore.roles.length) permissionsStore.fetchRoles()
+  if (!permissionsStore.users.length) permissionsStore.fetchUsers()
   if (!departmentsStore.departments.length) departmentsStore.fetchAll()
   if (!jobPositionsStore.positions.length) jobPositionsStore.fetchAll()
   if (!employeesStore.employees.length) employeesStore.fetchAll({ pageSize: 100 })

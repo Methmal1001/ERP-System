@@ -41,8 +41,8 @@
 
     <!-- Toolbar -->
     <div class="flex flex-col lg:flex-row gap-3 lg:items-end">
-      <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div>
+      <div class="flex-1 grid grid-cols-1 gap-3" :class="auth.isHrStaff ? 'sm:grid-cols-3' : 'sm:grid-cols-2'">
+        <div v-if="auth.isHrStaff">
           <label class="block text-xs font-medium text-gray-500 mb-1.5">Employee</label>
           <select
             v-model="filterEmployee"
@@ -71,7 +71,7 @@
       </div>
 
       <button
-        @click="showMarkModal = true"
+        @click="openMarkModal"
         class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95 whitespace-nowrap"
       >
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -120,7 +120,7 @@
         <p class="text-gray-700 font-semibold text-lg mb-1">No attendance records found</p>
         <p class="text-gray-400 text-sm">Try adjusting the date range or employee filter.</p>
         <div class="flex gap-2 justify-center mt-5">
-          <button @click="showMarkModal = true" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors">
+          <button @click="openMarkModal" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors">
             Mark Attendance
           </button>
         </div>
@@ -140,7 +140,8 @@
                 <th class="text-center text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 py-3.5">Check Out</th>
                 <th class="text-center text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 py-3.5">Hours</th>
                 <th class="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 py-3.5 hidden lg:table-cell">Note</th>
-                <th class="text-center text-xs font-semibold text-gray-400 uppercase tracking-wide px-5 py-3.5">Status</th>
+                <th class="text-center text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 py-3.5">Status</th>
+                <th class="text-center text-xs font-semibold text-gray-400 uppercase tracking-wide px-5 py-3.5">Approval</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
@@ -155,13 +156,38 @@
                 <td class="px-4 py-3.5 text-sm text-gray-500 text-center">{{ format.time(rec.checkOutTime) }}</td>
                 <td class="px-4 py-3.5 text-sm text-gray-500 text-center">{{ rec.workedHours ?? '-' }}</td>
                 <td class="px-4 py-3.5 text-sm text-gray-400 hidden lg:table-cell truncate max-w-xs">{{ rec.note || '-' }}</td>
-                <td class="px-5 py-3.5 text-center"><StatusBadge :status="rec.status" /></td>
+                <td class="px-4 py-3.5 text-center"><StatusBadge :status="rec.status" /></td>
+                <td class="px-5 py-3.5 text-center">
+                  <StatusBadge :status="rec.approvalStatus" />
+                  <p v-if="rec.approvalStatus !== 'Pending' && rec.approvedByName" class="text-[11px] text-gray-400 mt-1">
+                    by {{ rec.approvedByName }}
+                  </p>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
     </template>
+
+    <!-- My Leave Requests -->
+    <div v-if="!auth.isHrStaff" class="bg-white rounded-2xl border border-gray-100 shadow-sm">
+      <div class="px-5 py-3.5 border-b border-gray-100">
+        <h2 class="text-sm font-semibold text-gray-900">My Leave Requests</h2>
+      </div>
+      <div v-if="!myLeaveRequests.length" class="px-5 py-8 text-center text-sm text-gray-400">
+        No leave requests yet.
+      </div>
+      <div v-else class="divide-y divide-gray-50">
+        <div v-for="lr in myLeaveRequests" :key="lr.id" class="px-5 py-3.5 flex items-center justify-between gap-3">
+          <div>
+            <p class="text-sm font-medium text-gray-800">{{ lr.leaveTypeName }}</p>
+            <p class="text-xs text-gray-400">{{ format.date(lr.startDate) }} - {{ format.date(lr.endDate) }} &middot; {{ lr.totalDays }} day(s)</p>
+          </div>
+          <StatusBadge :status="lr.status" />
+        </div>
+      </div>
+    </div>
 
     <!-- Modal -->
     <MarkAttendanceModal
@@ -170,14 +196,20 @@
       @close="showMarkModal = false"
       @success="handleMarkSuccess"
     />
+    <SelfServiceModal
+      v-if="showSelfServiceModal"
+      @close="showSelfServiceModal = false"
+      @success="handleSelfServiceSuccess"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import StatCard from '~/components/ui/StatCard.vue'
 import StatusBadge from '~/components/ui/StatusBadge.vue'
 import MarkAttendanceModal from '~/components/attendance/MarkAttendanceModal.vue'
+import SelfServiceModal from '~/components/attendance/SelfServiceModal.vue'
 
 definePageMeta({
   middleware: 'auth',
@@ -187,6 +219,8 @@ definePageMeta({
 
 const store = useAttendanceStore()
 const employeesStore = useEmployeesStore()
+const leaveStore = useLeaveStore()
+const auth = useAuthStore()
 const toast = useToast()
 const format = useFormat()
 
@@ -198,10 +232,14 @@ const filterFrom = ref(firstOfMonth.toISOString().slice(0, 10))
 const filterTo = ref(today.toISOString().slice(0, 10))
 
 const showMarkModal = ref(false)
+const showSelfServiceModal = ref(false)
+
+const myLeaveRequests = computed(() => leaveStore.leaveRequests)
 
 const fetchRecords = () => {
+  if (!auth.isHrStaff && !auth.user?.employeeId) return
   store.fetchAll({
-    employeeId: filterEmployee.value || undefined,
+    employeeId: auth.isHrStaff ? (filterEmployee.value || undefined) : auth.user.employeeId,
     from: filterFrom.value || undefined,
     to: filterTo.value || undefined,
   })
@@ -209,12 +247,28 @@ const fetchRecords = () => {
 
 watch([filterEmployee, filterFrom, filterTo], fetchRecords)
 
+const openMarkModal = () => {
+  if (auth.isHrStaff) {
+    showMarkModal.value = true
+  } else {
+    showSelfServiceModal.value = true
+  }
+}
+
 const handleMarkSuccess = () => {
   toast.success('Attendance recorded successfully.')
+  fetchRecords()
+}
+
+const handleSelfServiceSuccess = (payload) => {
+  toast.success(payload?.message || 'Submitted successfully.')
+  fetchRecords()
+  if (auth.user?.employeeId) leaveStore.fetchLeaveRequests({ employeeId: auth.user.employeeId })
 }
 
 onMounted(() => {
   fetchRecords()
-  if (!employeesStore.employees.length) employeesStore.fetchAll({ pageSize: 100 })
+  if (auth.isHrStaff && !employeesStore.employees.length) employeesStore.fetchAll({ pageSize: 100 })
+  if (!auth.isHrStaff && auth.user?.employeeId) leaveStore.fetchLeaveRequests({ employeeId: auth.user.employeeId })
 })
 </script>

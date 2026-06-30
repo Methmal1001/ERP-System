@@ -272,7 +272,7 @@ import StatusBadge from '~/components/ui/StatusBadge.vue'
 import DepartmentFormModal from '~/components/departments/DepartmentFormModal.vue'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'hr-staff'],
   title: 'Departments',
   subtitle: 'Manage organizational departments',
 })

@@ -132,6 +132,7 @@ const emit = defineEmits(['close', 'success'])
 
 const departmentsStore = useDepartmentsStore()
 const employeesStore = useEmployeesStore()
+const permissionsStore = usePermissionsStore()
 
 const isEdit = computed(() => !!props.department)
 const loading = ref(false)
@@ -145,7 +146,12 @@ const form = reactive({
   isActive: props.department?.isActive ?? true,
 })
 
-const employeeOptions = computed(() => employeesStore.employees)
+const employeeOptions = computed(() => {
+  const managerIds = new Set(
+    permissionsStore.users.filter((u) => u.roleName === 'Manager' && u.employeeId).map((u) => u.employeeId)
+  )
+  return employeesStore.employees.filter((e) => managerIds.has(e.id))
+})
 
 const handleSubmit = async () => {
   error.value = ''
@@ -175,6 +181,9 @@ const handleSubmit = async () => {
 onMounted(() => {
   if (!employeesStore.employees.length) {
     employeesStore.fetchAll({ pageSize: 100 })
+  }
+  if (!permissionsStore.users.length) {
+    permissionsStore.fetchUsers()
   }
 })
 </script>

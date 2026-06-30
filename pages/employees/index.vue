@@ -356,7 +356,7 @@ import ConfirmModal from '~/components/ui/ConfirmModal.vue'
 import EmployeeFormModal from '~/components/employees/EmployeeFormModal.vue'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'hr-staff'],
   title: 'Employees',
   subtitle: 'Manage your workforce directory',
 })

@@ -278,7 +278,7 @@ import StatusBadge from '~/components/ui/StatusBadge.vue'
 import JobPositionFormModal from '~/components/jobPositions/JobPositionFormModal.vue'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'hr-staff'],
   title: 'Job Positions',
   subtitle: 'Manage roles and compensation bands',
 })

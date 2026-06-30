@@ -285,7 +285,7 @@ import LeaveTypeFormModal from '~/components/leave/LeaveTypeFormModal.vue'
 import ApproveLeaveModal from '~/components/leave/ApproveLeaveModal.vue'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'hr-staff'],
   title: 'Leave Management',
   subtitle: 'Manage leave requests, types, and balances',
 })

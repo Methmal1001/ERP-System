@@ -32,6 +32,16 @@
               </div>
 
               <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1.5">Username *</label>
+                <input v-model="form.username" type="text" required class="input" placeholder="jane.doe" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1.5">Employee No. *</label>
+                <input v-model="form.empNo" type="text" required class="input" placeholder="EMP-0001" />
+              </div>
+
+              <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1.5">Email *</label>
                 <input v-model="form.email" type="email" required class="input" placeholder="jane.doe@company.com" />
               </div>
@@ -109,6 +119,8 @@ const error = ref('')
 
 const form = reactive({
   name: props.user?.name ?? '',
+  username: props.user?.username ?? '',
+  empNo: props.user?.employeeNo ?? '',
   email: props.user?.email ?? '',
   password: '',
   roleId: props.user?.roleId ?? '',
@@ -122,12 +134,16 @@ const handleSubmit = async () => {
   const result = isEdit.value
     ? await permissionsStore.updateUser(props.user.id, {
         name: form.name.trim(),
+        username: form.username.trim(),
+        empNo: form.empNo.trim(),
         email: form.email.trim(),
         roleId: form.roleId,
         isActive: form.isActive,
       })
     : await permissionsStore.createUser({
         name: form.name.trim(),
+        username: form.username.trim(),
+        empNo: form.empNo.trim(),
         email: form.email.trim(),
         password: form.password,
         roleId: form.roleId,

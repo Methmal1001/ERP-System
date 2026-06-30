@@ -361,7 +361,7 @@ import UserFormModal from '~/components/permissions/UserFormModal.vue'
 import CreateUserModal from '~/components/permissions/CreateUserModal.vue'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'admin-access'],
   title: 'Roles & Permissions',
   subtitle: 'Manage roles, permissions, and user accounts',
 })

@@ -435,7 +435,7 @@ import DocumentUploadModal from '~/components/employees/DocumentUploadModal.vue'
 import LeaveBalanceFormModal from '~/components/employees/LeaveBalanceFormModal.vue'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'hr-staff'],
   title: 'Employee Profile',
   subtitle: 'View and manage employee details',
 })

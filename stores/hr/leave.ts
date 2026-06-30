@@ -39,7 +39,9 @@ interface LeaveState {
   leaveTypes: LeaveType[]
   leaveRequests: LeaveRequest[]
   leaveBalances: LeaveBalance[]
+  pendingApprovals: LeaveRequest[]
   loading: boolean
+  approvalsLoading: boolean
   error: string | null
 }
 
@@ -48,7 +50,9 @@ export const useLeaveStore = defineStore('hrLeave', {
     leaveTypes: [],
     leaveRequests: [],
     leaveBalances: [],
+    pendingApprovals: [],
     loading: false,
+    approvalsLoading: false,
     error: null,
   }),
 
@@ -117,7 +121,6 @@ export const useLeaveStore = defineStore('hrLeave', {
 
     async approveLeaveRequest(payload: {
       leaveRequestId: string
-      approvedById: string
       status: 'Approved' | 'Rejected'
       approvalNote?: string
     }) {
@@ -128,6 +131,44 @@ export const useLeaveStore = defineStore('hrLeave', {
         return { success: true }
       } catch (e: any) {
         return { success: false, error: e?.data?.message || 'Failed to update leave request.' }
+      }
+    },
+
+    async fetchPendingApprovals() {
+      this.approvalsLoading = true
+      const { request } = useHrApi()
+      try {
+        const res: any = await request('/leave/GetPendingApprovals')
+        if (res.isSuccess) this.pendingApprovals = res.data
+      } catch (e: any) {
+        this.error = e?.data?.message || 'Unable to load pending leave approvals.'
+      } finally {
+        this.approvalsLoading = false
+      }
+    },
+
+    async approve(id: string) {
+      const { request } = useHrApi()
+      try {
+        await request('/leave/ApproveLeaveRequest', { method: 'PUT', body: { leaveRequestId: id, status: 'Approved' } })
+        await this.fetchPendingApprovals()
+        return { success: true }
+      } catch (e: any) {
+        return { success: false, error: getApiErrorMessage(e, 'Failed to approve leave request.') }
+      }
+    },
+
+    async reject(id: string, reason: string) {
+      const { request } = useHrApi()
+      try {
+        await request('/leave/ApproveLeaveRequest', {
+          method: 'PUT',
+          body: { leaveRequestId: id, status: 'Rejected', approvalNote: reason },
+        })
+        await this.fetchPendingApprovals()
+        return { success: true }
+      } catch (e: any) {
+        return { success: false, error: getApiErrorMessage(e, 'Failed to reject leave request.') }
       }
     },
 

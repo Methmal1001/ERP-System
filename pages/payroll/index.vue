@@ -201,7 +201,7 @@ import GeneratePayrollModal from '~/components/payroll/GeneratePayrollModal.vue'
 import PayslipModal from '~/components/payroll/PayslipModal.vue'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'hr-staff'],
   title: 'Payroll',
   subtitle: 'Generate and manage employee payroll',
 })

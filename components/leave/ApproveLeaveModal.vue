@@ -101,7 +101,6 @@ const props = defineProps({
 const emit = defineEmits(['close', 'success'])
 
 const leaveStore = useLeaveStore()
-const auth = useAuthStore()
 const format = useFormat()
 
 const loading = ref(false)
@@ -116,7 +115,6 @@ const handleDecision = async (status) => {
 
   const result = await leaveStore.approveLeaveRequest({
     leaveRequestId: props.request.id,
-    approvedById: auth.user?.id,
     status,
     approvalNote: approvalNote.value.trim() || undefined,
   })

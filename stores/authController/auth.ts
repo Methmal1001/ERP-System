@@ -7,6 +7,7 @@ export interface HrUserProfile {
   name: string
   email: string
   username?: string | null
+  empNo?: string | null
   employeeId?: string | null
   role: string
   permissions: string[]
@@ -30,7 +31,17 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: (state) => !!state.accessToken,
     permissions: (state) => state.user?.permissions ?? [],
-    isPrivileged: (state) => state.user?.role === 'HR Admin' || state.user?.role === 'Admin',
+    isAdmin: (state) => state.user?.role === 'Admin',
+    isHrAdmin: (state) => state.user?.role === 'HR Admin',
+    isHrAssistant: (state) => state.user?.role === 'HR Assistant',
+    isManager: (state) => state.user?.role === 'Manager',
+    isCEO: (state) => state.user?.role === 'CEO',
+    isHrStaff(): boolean {
+      return this.isHrAdmin || this.isHrAssistant || this.isCEO
+    },
+    isPrivileged(): boolean {
+      return this.isAdmin || this.isHrAdmin || this.isCEO
+    },
     initials: (state) => {
       if (!state.user?.name) return '?'
       return state.user.name
@@ -106,7 +117,38 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async updateProfile(payload: { name: string; email: string }) {
+    async register(payload: { username: string; empNo: string; email: string; nic: string; password: string }) {
+      this.loading = true
+      const url = `${API_BASE}/Register`
+      console.groupCollapsed(`%c[API] POST ${url}`, 'color:#2563eb;font-weight:bold')
+      console.log('Request Body:', { ...payload, password: '••••••••', nic: '••••••••' })
+      try {
+        const headers: Record<string, string> = {}
+        if (this.accessToken) headers.Authorization = `Bearer ${this.accessToken}`
+        const res: any = await $fetch(url, {
+          method: 'POST',
+          headers,
+          body: payload,
+        })
+        console.log('%cResponse:', 'color:#16a34a;font-weight:bold', res)
+        console.groupEnd()
+        if (res.isSuccess) {
+          return { success: true, data: res.data }
+        }
+        return { success: false, error: res.message || 'Registration failed.' }
+      } catch (e: any) {
+        console.log('%cError Response:', 'color:#dc2626;font-weight:bold', e?.data ?? e)
+        console.groupEnd()
+        return {
+          success: false,
+          error: getApiErrorMessage(e, 'Registration failed. Please check the details and try again.'),
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateProfile(payload: { name: string; email: string; username?: string }) {
       this.loading = true
       try {
         const { request } = useHrApi()

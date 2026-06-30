@@ -171,15 +171,14 @@ const performanceStore = usePerformanceStore()
 
 const firstName = computed(() => auth.user?.name?.split(' ')[0] || 'there')
 
-const canViewEmployees = computed(() => auth.can('HR', 'ViewEmployee'))
-const canViewDepartments = computed(() => auth.can('HR', 'ViewDepartment'))
-const canViewJobPositions = computed(() => auth.can('HR', 'ViewJobPosition'))
-const canViewAttendance = computed(() => auth.can('HR', 'ViewAttendance'))
-const canViewLeave = computed(() => auth.can('HR', 'ViewLeave'))
-const canViewPayroll = computed(() => auth.can('HR', 'ViewPayroll'))
-const canViewPerformance = computed(() => auth.can('HR', 'ViewPerformance'))
-const canViewProducts = computed(() => auth.can('Products', 'View'))
-const canViewAdmin = computed(() => auth.canAny([['Roles', 'View'], ['Permissions', 'View'], ['Users', 'View']]))
+const canViewEmployees = computed(() => auth.isHrStaff)
+const canViewDepartments = computed(() => auth.isHrStaff)
+const canViewJobPositions = computed(() => auth.isHrStaff)
+const canViewAttendance = computed(() => true)
+const canViewLeave = computed(() => auth.isHrStaff)
+const canViewPayroll = computed(() => auth.isHrStaff)
+const canViewPerformance = computed(() => auth.isHrStaff)
+const canViewAdmin = computed(() => auth.isPrivileged)
 
 const visibleStatCards = computed(() =>
   [
@@ -268,14 +267,6 @@ const allQuickLinks = [
     color: 'text-orange-500',
     icon: icon('<path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 14l4-4 3 3 5-6" />'),
     show: canViewPerformance,
-  },
-  {
-    label: 'Products',
-    to: '/products',
-    bg: 'bg-teal-50',
-    color: 'text-teal-500',
-    icon: icon('<path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />'),
-    show: canViewProducts,
   },
   {
     label: 'Permissions',

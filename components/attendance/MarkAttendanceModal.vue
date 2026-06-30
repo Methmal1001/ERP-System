@@ -26,7 +26,7 @@
                 {{ error }}
               </div>
 
-              <div>
+              <div v-if="auth.isHrStaff">
                 <label class="block text-xs font-medium text-gray-600 mb-1.5">Employee *</label>
                 <select v-model="form.employeeId" required class="input bg-white">
                   <option value="" disabled>Select employee</option>
@@ -34,6 +34,9 @@
                     {{ emp.fullName }} &mdash; {{ emp.employeeNo }}
                   </option>
                 </select>
+              </div>
+              <div v-else class="bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-600">
+                Marking attendance for <strong>{{ auth.user?.name }}</strong>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -116,12 +119,13 @@ const emit = defineEmits(['close', 'success'])
 
 const employeesStore = useEmployeesStore()
 const attendanceStore = useAttendanceStore()
+const auth = useAuthStore()
 
 const loading = ref(false)
 const error = ref('')
 
 const form = reactive({
-  employeeId: props.defaultEmployeeId || '',
+  employeeId: props.defaultEmployeeId || (!auth.isHrStaff ? (auth.user?.employeeId || '') : ''),
   date: props.defaultDate || new Date().toISOString().slice(0, 10),
   status: '',
   checkInTime: '',
@@ -153,7 +157,7 @@ const handleSubmit = async () => {
 }
 
 onMounted(() => {
-  if (!employeesStore.employees.length) employeesStore.fetchAll({ pageSize: 100 })
+  if (auth.isHrStaff && !employeesStore.employees.length) employeesStore.fetchAll({ pageSize: 100 })
 })
 </script>
 
